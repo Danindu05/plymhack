@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Space_Grotesk } from "next/font/google";
+import Navbar from "@/components/Navbar";
 
 const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 
@@ -20,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-[#0f172a] antialiased">
-     
+     <Navbar />
         <main>
           {children}
         </main>
