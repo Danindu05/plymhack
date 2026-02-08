@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0b1724;
+  --card: #101e2f;
+  --accent: #1db954;
+  --muted: #9fb3c8;
+}
+
+body {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui;
+  background: radial-gradient(120% 120% at 10% 20%, rgba(29,185,84,0.18), transparent 40%),
+              radial-gradient(80% 80% at 80% 0%, rgba(0,173,181,0.18), transparent 35%),
+              #0b1724;
+  color: #e9f4ff;
+  min-height: 100vh;
+}
+
+a {
+  color: #7ce0a3;
+}
+
+.card {
+  background: #101e2f;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.35);
+}
+
+input, textarea, select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: #e9f4ff;
+}
+
+button {
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.leaflet-container {
+  z-index: 0;
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+}
