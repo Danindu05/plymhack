@@ -1,183 +1,42 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
 
-import "leaflet/dist/leaflet.css";
-
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  Popup,
-  useMap
-} from "react-leaflet";
-
-import L from "leaflet";
-
-/* ---------------------------------- */
-/* FIX LEAFLET ICONS                  */
-/* ---------------------------------- */
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png"
+// ⭐ SSR False කිරීමෙන් "window is not defined" error එක සම්පූර්ණයෙන්ම විසඳේ
+const MapComponent = dynamic(() => import("@/components/MapComponent"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen w-full flex items-center justify-center bg-[#0f172a]">
+       <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-[#0df20d]/20 border-t-[#0df20d] rounded-full animate-spin"></div>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Initializing Map Engine...</p>
+       </div>
+    </div>
+  )
 });
 
-/* ---------------------------------- */
-/* TYPES                              */
-/* ---------------------------------- */
-
-type Issue = {
-  id: string;
-  description: string;
-  category: string;
-  severity: number;
-  status: string;
-  location: { lat: number; lng: number };
-};
-
-/* ---------------------------------- */
-/* SEVERITY COLORS                    */
-/* ---------------------------------- */
-
-function coloredIcon(color: string) {
-  return new L.Icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${color}.png`,
-    shadowUrl:
-      "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-  });
-}
-
-function getIcon(severity: number) {
-  if (severity >= 5) return coloredIcon("red");
-  if (severity >= 4) return coloredIcon("orange");
-  if (severity >= 3) return coloredIcon("yellow");
-  return coloredIcon("green");
-}
-
-/* ---------------------------------- */
-/* FLY TO                             */
-/* ---------------------------------- */
-
-function FlyTo({ lat, lng }: { lat?: number; lng?: number }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (lat && lng) {
-      map.flyTo([lat, lng], 17, { duration: 1.5 });
-    }
-  }, [lat, lng, map]);
-
-  return null;
-}
-
-/* ---------------------------------- */
-/* MARKER WITH AUTO OPEN              */
-/* ---------------------------------- */
-
-function IssueMarker({
-  issue,
-  focusId
-}: {
-  issue: Issue;
-  focusId: string | null;
-}) {
-  const markerRef = useRef<L.Marker>(null);
-
-  useEffect(() => {
-    if (issue.id === focusId && markerRef.current) {
-      markerRef.current.openPopup(); // ✅ correct way
-    }
-  }, [focusId, issue.id]);
-
-  return (
-    <Marker
-      ref={markerRef}
-      position={[issue.location.lat, issue.location.lng]}
-      icon={getIcon(issue.severity)}
-    >
-      <Popup>
-        <div className="space-y-1 min-w-[180px]">
-          <p className="font-semibold">{issue.category}</p>
-          <p className="text-sm">{issue.description}</p>
-          <p className="text-xs">Severity: {issue.severity}</p>
-          <p className="text-xs">Status: {issue.status}</p>
-          <a
-            href={`/issue/${issue.id}`}
-            className="text-blue-400 underline text-xs"
-          >
-            View details
-          </a>
-        </div>
-      </Popup>
-    </Marker>
-  );
-}
-
-/* ---------------------------------- */
-/* PAGE                               */
-/* ---------------------------------- */
-
 export default function MapPage() {
-  const params = useSearchParams();
-
-  const focusLat = Number(params.get("lat"));
-  const focusLng = Number(params.get("lng"));
-  const focusId = params.get("id");
-
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "issues"), (snap) => {
-      const list = snap.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as any)
-      }));
-
-      setIssues(list);
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, []);
-
   return (
-    <main className="h-screen w-full">
-      {loading ? (
-        <div className="flex h-full items-center justify-center text-slate-400">
-          Loading map...
-        </div>
-      ) : (
-        <MapContainer
-          center={[7.8731, 80.7718]}
-          zoom={8}
-          className="h-full w-full"
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <main className="h-[calc(100vh-64px)] w-full relative">
+      {/* Search Params handle කිරීමට Suspense අවශ්‍යයි */}
+      <Suspense fallback={<div>Loading Search...</div>}>
+         <MapComponent />
+      </Suspense>
 
-          <FlyTo lat={focusLat} lng={focusLng} />
-
-          {issues.map((issue) => (
-            <IssueMarker
-              key={issue.id}
-              issue={issue}
-              focusId={focusId}
-            />
-          ))}
-        </MapContainer>
-      )}
+      {/* Optional: Legend Overlay */}
+      <div className="absolute bottom-8 left-8 z-[500] bg-[#1e293b]/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700 hidden md:block">
+         <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444]"></div>
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Critical</span>
+            </div>
+            <div className="flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-[#0df20d] shadow-[0_0_8px_#0df20d]"></div>
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Standard</span>
+            </div>
+         </div>
+      </div>
     </main>
   );
 }

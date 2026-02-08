@@ -5,7 +5,7 @@ import { db, auth } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { geohashForLocation } from "geofire-common";
 import { useRouter } from "next/navigation";
-import { Category } from "@/lib/util";
+import { Category, calcPriorityScore } from "@/lib/util"; // ⭐ calcPriorityScore import කළා
 import dynamic from "next/dynamic";
 
 const MapPicker = dynamic(() => import("./MapPicker"), { 
@@ -66,7 +66,6 @@ export default function IssueForm() {
         
         const { uploadUrl, publicUrl, key } = await prep.json();
         
-        // පින්තූරය S3 වලට යවනවා
         await fetch(uploadUrl, { 
           method: "PUT", 
           headers: { "Content-Type": file.type }, 
@@ -75,23 +74,36 @@ export default function IssueForm() {
 
         imageUrl = publicUrl;
         imageKey = key;
-        console.log("Uploaded Image URL:", imageUrl); // Debugging සඳහා
       }
       /* --- S3 UPLOAD END --- */
 
       const geohash = geohashForLocation([lat, lng]);
 
+      // ⭐ පද්ධතියේ ප්‍රමුඛතාවය (Priority Score) ගණනය කිරීම
+      const counts = { stillThere: 0, cleaned: 0 };
+      const status = "OPEN";
+      
+      const priorityScore = calcPriorityScore({
+        category,
+        severity,
+        counts,
+        createdAt: new Date(),
+        status
+      });
+
+      // Firestore එකට දත්ත ඇතුළත් කිරීම
       await addDoc(collection(db, "issues"), {
         category,
         description,
-        imageUrl, // පින්තූරයේ ලින්ක් එක Firestore එකට යනවා
+        imageUrl, 
         imageKey,   
         location: { lat, lng, geohash },
-        status: "OPEN",
+        status,
         severity,
+        priorityScore, // 🔥 දැන් Score එක Firestore එකට යනවා
         createdAt: serverTimestamp(),
         createdBy: auth.currentUser.uid,
-        counts: { stillThere: 0, cleaned: 0 },
+        counts,
         timeline: [{ at: new Date(), by: auth.currentUser.uid, status: "OPEN", note: "Report submitted" }]
       });
 
@@ -110,19 +122,16 @@ export default function IssueForm() {
     }
   };
 
+  // ... (isSending සහ isSuccess UI කොටස් නොවෙනස්ව පවතී)
   if (isSending) return (
     <div className="flex flex-col items-center justify-center py-20 space-y-8">
       <div className="relative w-24 h-24">
-        {/* Background Cloud */}
         <span className="material-symbols-outlined text-8xl text-slate-800 absolute inset-0 text-center">cloud</span>
-        
-        {/* Fixed Animation CSS using Standard HTML Style Tag */}
         <div className="absolute inset-0 flex items-center justify-center send-animation">
           <span className="material-symbols-outlined text-4xl text-[#0df20d] drop-shadow-[0_0_10px_rgba(13,242,13,0.5)]">mail</span>
         </div>
       </div>
       <h2 className="text-xl font-black text-white italic tracking-widest uppercase animate-pulse">Transmitting...</h2>
-      
       <style>{`
         @keyframes fly-away {
           0% { transform: translate(-60px, 30px) scale(0.3); opacity: 0; }

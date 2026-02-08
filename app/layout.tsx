@@ -8,6 +8,11 @@ const space = Space_Grotesk({ subsets: ["latin"], variable: "--font-space" });
 export const metadata: Metadata = {
   title: "CleanPulse",
   description: "Verified waste reports + fast resolution tracking",
+
+  icons: {
+    icon: '/favicon.ico', // public folder එකේ තියෙන path එක
+    apple: '/apple-icon.png', // Apple devices සඳහා (අවශ්‍ය නම්)
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-[#0f172a] antialiased">
      <Navbar />
-        <main>
+        <main className="flex-grow pt-18">
           {children}
         </main>
       </body>

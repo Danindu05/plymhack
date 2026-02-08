@@ -52,3 +52,48 @@ button:active {
   border-radius: 14px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.35);
 }
+
+leaflet-popup-content-wrapper {
+  background: rgba(30, 41, 59, 0.8) !important; /* Slate 900 with transparency */
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(13, 242, 13, 0.2) !important;
+  border-radius: 20px !important;
+  color: white !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-tip {
+  background: rgba(30, 41, 59, 0.8) !important;
+  border: 1px solid rgba(13, 242, 13, 0.2) !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: 280px !important; /* Popup එකේ පළල */
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  padding: 8px !important;
+}
+/* Custom Map Styles */
+.custom-marker-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-glass-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.custom-glass-popup .leaflet-popup-content {
+  margin: 0 !important;
+}
+
+.custom-glass-popup .leaflet-popup-tip {
+  background: #1e293b !important;
+  border: 1px solid rgba(13, 242, 13, 0.2);
+}
