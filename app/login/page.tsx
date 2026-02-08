@@ -12,13 +12,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null); // ⭐ දැනට ඉන්න පරිශීලකයා තබා ගැනීමට
+  const [user, setUser] = useState<any>(null); // ⭐ To keep the current user
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u); // පරිශීලකයා සිටී නම් set කරනවා
+      setUser(u); // Sets if the user exists
       setCheckingAuth(false);
     });
     return () => unsub();
@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   const handleSignOut = async () => {
     await signOut(auth);
-    // Sign out වූ පසු ස්වයංක්‍රීයව state එක update වී Login Form එක පෙනෙනු ඇත
+    // After signing out, state updates automatically and Login Form becomes visible
   };
 
   if (checkingAuth) {
@@ -51,7 +51,7 @@ export default function LoginPage() {
     );
   }
 
-  // ⭐ පරිශීලකයා දැනටමත් ලොග් වී සිටී නම් පෙන්වන කොටස
+  // ⭐ Section shown if the user is already logged in
   if (user) {
     return (
       <main className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
@@ -73,7 +73,7 @@ export default function LoginPage() {
                 Go to Home
               </button>
             </Link>
-            <button 
+            <button
               onClick={handleSignOut}
               className="w-full bg-slate-800 hover:bg-slate-700 text-red-400 font-bold py-3 rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2"
             >
@@ -86,7 +86,7 @@ export default function LoginPage() {
     );
   }
 
-  // ⭐ පරිශීලකයා ලොග් වී නැති විට පෙන්වන Login Form එක
+  // ⭐ Login Form shown when the user is not logged in
   return (
     <main className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-[#1e293b] rounded-2xl border border-slate-700 shadow-2xl p-8 space-y-6">
