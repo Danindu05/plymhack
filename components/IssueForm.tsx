@@ -5,10 +5,10 @@ import { db, auth } from "@/lib/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { geohashForLocation } from "geofire-common";
 import { useRouter } from "next/navigation";
-import { Category, calcPriorityScore } from "@/lib/util"; // ⭐ calcPriorityScore import කළා
+import { Category, calcPriorityScore } from "@/lib/util"; // ⭐ Imported calcPriorityScore
 import dynamic from "next/dynamic";
 
-const MapPicker = dynamic(() => import("./MapPicker"), { 
+const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
   loading: () => <div className="h-64 bg-slate-900 animate-pulse rounded-xl" />
 });
@@ -22,7 +22,7 @@ export default function IssueForm() {
   const [lng, setLng] = useState<number | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -63,13 +63,13 @@ export default function IssueForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fileName: file.name, contentType: file.type })
         });
-        
+
         const { uploadUrl, publicUrl, key } = await prep.json();
-        
-        await fetch(uploadUrl, { 
-          method: "PUT", 
-          headers: { "Content-Type": file.type }, 
-          body: file 
+
+        await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file
         });
 
         imageUrl = publicUrl;
@@ -79,10 +79,10 @@ export default function IssueForm() {
 
       const geohash = geohashForLocation([lat, lng]);
 
-      // ⭐ පද්ධතියේ ප්‍රමුඛතාවය (Priority Score) ගණනය කිරීම
+      // ⭐ Calculating the Priority Score of the system
       const counts = { stillThere: 0, cleaned: 0 };
       const status = "OPEN";
-      
+
       const priorityScore = calcPriorityScore({
         category,
         severity,
@@ -91,16 +91,16 @@ export default function IssueForm() {
         status
       });
 
-      // Firestore එකට දත්ත ඇතුළත් කිරීම
+      // Adding data to Firestore
       await addDoc(collection(db, "issues"), {
         category,
         description,
-        imageUrl, 
-        imageKey,   
+        imageUrl,
+        imageKey,
         location: { lat, lng, geohash },
         status,
         severity,
-        priorityScore, // 🔥 දැන් Score එක Firestore එකට යනවා
+        priorityScore, // 🔥 Now the Score goes to Firestore
         createdAt: serverTimestamp(),
         createdBy: auth.currentUser.uid,
         counts,
@@ -122,7 +122,7 @@ export default function IssueForm() {
     }
   };
 
-  // ... (isSending සහ isSuccess UI කොටස් නොවෙනස්ව පවතී)
+  // ... (isSending and isSuccess UI parts remain unchanged)
   if (isSending) return (
     <div className="flex flex-col items-center justify-center py-20 space-y-8">
       <div className="relative w-24 h-24">

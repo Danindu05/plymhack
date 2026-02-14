@@ -32,7 +32,7 @@ export default function Navbar() {
     return () => unsub();
   }, []);
 
-  // ⭐ Admin ට සහ User ට අදාළ ලින්ක් එක තීරණය කිරීම
+  // Determine path based on user role (Admin/User)
   const reportLinkPath = role === "admin" ? "/my-issues" : "/report";
 
   return (
@@ -48,10 +48,9 @@ export default function Navbar() {
         </Link>
 
         {/* Dynamic Navigation */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           <NavLink href="/" active={pathname === "/"} label="Home" icon="home" />
           
-          {/* ⭐ මෙතනදී Admin ද නැද්ද බලලා යන පේජ් එක වෙනස් වෙනවා */}
           <NavLink 
             href={reportLinkPath} 
             active={pathname === reportLinkPath} 
@@ -59,24 +58,48 @@ export default function Navbar() {
             icon="add_circle" 
           />
           
-          {/* Admin ට පමණක් Dashboard ලින්ක් එක පෙන්වීම */}
+          {/* Show Admin Dashboard only to Admins */}
           {role === "admin" && (
             <NavLink href="/admin" active={pathname === "/admin"} label="Dashboard" icon="dashboard" />
           )}
 
           <NavLink href="/map" active={pathname === "/map"} label="Live Map" icon="map" />
+
+          {/* ⭐ Logged-in Users/Admins only: New SDG and Pollution features */}
+          {user && (
+            <>
+              <NavLink 
+                href="/pollution" 
+                active={pathname === "/pollution"} 
+                label="Analytics" 
+                icon="analytics" 
+              />
+              <NavLink 
+                href="/sustainable-living" 
+                active={pathname === "/sustainable-living"} 
+                label="SDG 11 Index" 
+                icon="home_health" 
+              />
+            </>
+          )}
         </nav>
 
-        {/* User Actions */}
+        {/* User Authentication Actions */}
         <div className="flex items-center gap-4">
           {user ? (
             <div className="flex items-center gap-3">
-              <button onClick={() => signOut(auth)} className="bg-slate-800 hover:bg-red-500/10 hover:text-red-400 text-slate-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-700 transition-all">
+              <button 
+                onClick={() => signOut(auth)} 
+                className="bg-slate-800 hover:bg-red-500/10 hover:text-red-400 text-slate-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-700 transition-all"
+              >
                 Logout
               </button>
             </div>
           ) : (
-            <Link href="/login" className="bg-[#0df20d] text-black px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(13,242,13,0.2)]">
+            <Link 
+              href="/login" 
+              className="bg-[#0df20d] text-black px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(13,242,13,0.2)]"
+            >
               Sign In
             </Link>
           )}
@@ -86,7 +109,7 @@ export default function Navbar() {
   );
 }
 
-// NavLink Sub-component
+// Reusable Navigation Link Component
 function NavLink({ href, active, label, icon }: { href: string; active: boolean; label: string; icon: string }) {
   return (
     <Link 

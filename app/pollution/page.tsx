@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
-// ⭐ Loading Pollution Map with SSR disabled to prevent 'window' error
 const PollutionMap = dynamic(() => import("@/components/PollutionMap"), {
   ssr: false,
   loading: () => (
@@ -18,18 +17,18 @@ const PollutionMap = dynamic(() => import("@/components/PollutionMap"), {
 
 export default function PollutionPage() {
   return (
-    <main className="h-[calc(100vh-64px)] w-full relative">
-      <Suspense fallback={<div className="text-white p-20">Initializing...</div>}>
+    <main className="h-[calc(100vh-64px)] w-full relative overflow-hidden">
+      <Suspense fallback={<div className="text-white p-20">Initializing System...</div>}>
          <PollutionMap />
       </Suspense>
 
-      {/* Title Badge */}
-      <div className="absolute top-10 left-10 z-[500] pointer-events-none hidden md:block">
-         <div className="bg-slate-900/80 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-slate-700 shadow-2xl">
+      {/* Overlay Badge */}
+      <div className="absolute top-8 left-8 z-[500] pointer-events-none hidden md:block">
+         <div className="bg-slate-900/90 backdrop-blur-2xl px-8 py-6 rounded-[2.5rem] border border-slate-700 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
             <h1 className="text-2xl font-black text-white italic uppercase tracking-tighter">
               Pollution <span className="text-[#0df20d]">Observatory</span>
             </h1>
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1">Planetary Air Quality Intelligence</p>
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] mt-1">Real-time Planetary Intelligence</p>
          </div>
       </div>
     </main>

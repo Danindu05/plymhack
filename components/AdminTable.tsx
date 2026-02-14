@@ -43,9 +43,9 @@ export default function AdminTable() {
   /* REALTIME LISTENER (SAFE QUERY) */
   /* -------------------------------------------------- */
   useEffect(() => {
-    // ⭐ Index error එක මගහරවා ගැනීමට දැනට orderBy අයින් කර සරල Query එකක් දැම්මා
+    // ⭐ Removed orderBy and used a simple Query to avoid Index error for now
     const q = query(collection(db, "issues"));
-    
+
     const unsub = onSnapshot(q, (snap) => {
       const list: Issue[] = snap.docs
         .map((d) => ({
@@ -54,9 +54,9 @@ export default function AdminTable() {
         }))
         .filter((item) => item.id && item.description); // Junk data filter
 
-      // ⭐ දත්ත ලැබුණාට පසු Code එක ඇතුළතදී Priority Score එකට අනුව Sort කරනවා
+      // ⭐ Sorting by Priority Score within the code after receiving data
       const sortedList = list.sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0));
-      
+
       setIssues(sortedList);
     }, (err) => {
       console.error("Firestore Listener Error:", err);
@@ -81,30 +81,30 @@ export default function AdminTable() {
   /* -------------------------------------------------- */
   const updateStatus = async (issue: Issue, status: Status) => {
     if (!auth.currentUser || !issue.id) return alert("Invalid operation.");
-    
+
     try {
-        const ref = doc(db, "issues", issue.id);
-        const priorityScore = calcPriorityScore({
-          category: issue.category,
-          severity: issue.severity,
-          counts: issue.counts,
-          createdAt: issue.createdAt,
-          status
-        });
+      const ref = doc(db, "issues", issue.id);
+      const priorityScore = calcPriorityScore({
+        category: issue.category,
+        severity: issue.severity,
+        counts: issue.counts,
+        createdAt: issue.createdAt,
+        status
+      });
 
-        const timeline = [
-          ...(issue.timeline || []),
-          {
-            at: new Date(),
-            by: auth.currentUser.uid,
-            status,
-            note: `Status updated to ${status} by admin.`
-          }
-        ];
+      const timeline = [
+        ...(issue.timeline || []),
+        {
+          at: new Date(),
+          by: auth.currentUser.uid,
+          status,
+          note: `Status updated to ${status} by admin.`
+        }
+      ];
 
-        await updateDoc(ref, { status, timeline, priorityScore });
+      await updateDoc(ref, { status, timeline, priorityScore });
     } catch (err: any) {
-        alert("Update Error: " + err.message);
+      alert("Update Error: " + err.message);
     }
   };
 
@@ -122,12 +122,12 @@ export default function AdminTable() {
           kind: "action"
         })
       });
-      
+
       const data = await res.json();
       if (!res.ok || !data.text) throw new Error(data.error || "AI Error");
 
       await updateDoc(doc(db, "issues", issue.id), { aiRecommendedAction: data.text });
-      
+
     } catch (e: any) {
       alert("AI Processing Failed: " + e.message);
     } finally {
@@ -137,41 +137,41 @@ export default function AdminTable() {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl">
-            <h4 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Live Incidents</h4>
-            <p className="text-5xl font-black text-white mt-2">{issues.length}</p>
-         </div>
-         <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl">
-            <h4 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Urgent Tasks</h4>
-            <p className="text-5xl font-black text-red-500 mt-2">{issues.filter(i => (i.priorityScore || 0) > 70).length}</p>
-         </div>
-         <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl flex items-center justify-center">
-            <div className="text-center">
-               <p className="text-[10px] font-black text-slate-500 uppercase mb-2">System Status</p>
-               <div className="flex items-center gap-2 text-[#0df20d]">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0df20d] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0df20d]"></span>
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-widest">Database Live</span>
-               </div>
+        <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl">
+          <h4 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Live Incidents</h4>
+          <p className="text-5xl font-black text-white mt-2">{issues.length}</p>
+        </div>
+        <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl">
+          <h4 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">Urgent Tasks</h4>
+          <p className="text-5xl font-black text-red-500 mt-2">{issues.filter(i => (i.priorityScore || 0) > 70).length}</p>
+        </div>
+        <div className="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-800 shadow-xl flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-[10px] font-black text-slate-500 uppercase mb-2">System Status</p>
+            <div className="flex items-center gap-2 text-[#0df20d]">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0df20d] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#0df20d]"></span>
+              </span>
+              <span className="text-xs font-bold uppercase tracking-widest">Database Live</span>
             </div>
-         </div>
+          </div>
+        </div>
       </div>
 
       {/* Filter Section */}
       <div className="flex flex-wrap gap-4 bg-[#1e293b]/50 backdrop-blur-md p-5 rounded-2xl border border-slate-800 items-center justify-between">
-         <div className="flex gap-3">
-            <select className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-slate-700 outline-none focus:border-[#0df20d]" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
-               <option value="ALL">All Status</option>
-               <option value="OPEN">Open</option>
-               <option value="RESOLVED">Resolved</option>
-            </select>
-         </div>
-         <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{filtered.length} Results Tracked</span>
+        <div className="flex gap-3">
+          <select className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-slate-700 outline-none focus:border-[#0df20d]" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
+            <option value="ALL">All Status</option>
+            <option value="OPEN">Open</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+        </div>
+        <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{filtered.length} Results Tracked</span>
       </div>
 
       {/* Table Container */}
@@ -203,17 +203,16 @@ export default function AdminTable() {
                     )}
                   </td>
                   <td className="p-8">
-                     <div className="w-24 h-1.5 bg-slate-900 rounded-full overflow-hidden">
-                        <div className={`h-full transition-all duration-1000 ${ (i.priorityScore || 0) > 70 ? 'bg-red-500' : 'bg-[#0df20d]'}`} style={{ width: `${i.priorityScore || 0}%` }}></div>
-                     </div>
+                    <div className="w-24 h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                      <div className={`h-full transition-all duration-1000 ${(i.priorityScore || 0) > 70 ? 'bg-red-500' : 'bg-[#0df20d]'}`} style={{ width: `${i.priorityScore || 0}%` }}></div>
+                    </div>
                   </td>
                   <td className="p-8">
-                     <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                        i.status === 'OPEN' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 
-                        i.status === 'RESOLVED' ? 'bg-[#0df20d]/10 text-[#0df20d] border-[#0df20d]/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                     }`}>
-                        {i.status}
-                     </span>
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${i.status === 'OPEN' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      i.status === 'RESOLVED' ? 'bg-[#0df20d]/10 text-[#0df20d] border-[#0df20d]/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
+                      {i.status}
+                    </span>
                   </td>
                   <td className="p-8 text-right space-x-2">
                     <button
@@ -222,7 +221,7 @@ export default function AdminTable() {
                       className="p-3 bg-slate-950 text-[#0df20d] rounded-2xl border border-slate-800 hover:border-[#0df20d]/50 transition-all"
                     >
                       <span className={`material-symbols-outlined text-sm ${actionLoading === i.id ? 'animate-spin' : ''}`}>
-                         {actionLoading === i.id ? 'sync' : 'bolt'}
+                        {actionLoading === i.id ? 'sync' : 'bolt'}
                       </span>
                     </button>
                     {i.status !== 'RESOLVED' && (
